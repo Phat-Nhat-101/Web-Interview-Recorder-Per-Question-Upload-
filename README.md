@@ -298,11 +298,105 @@ This policy ensures that even under unstable connections:
 
        
 
-
 13. Folder & File Naming Rules
+To ensure consistency, maintainability, and clarity across the project, the following folder structure and naming conventions are applied:
+project-root/
+1. Folder Structure
 
-14. System Behavior & Edge Case
+        │
+        ├── frontend/              # UI layer (HTML/CSS/JS)
+        │   ├── assets/
+        │   │   ├── css/          # Stylesheets
+        │   │   ├── js/           # Client-side scripts
+        │   │   └── img/          # Static images/icons
+        │   └── index.html        # Main entrypoint
+        │
+        ├── backend/               # API service layer
+        │   ├── controllers/       # Request handlers
+        │   ├── routes/            # API route definitions
+        │   ├── middleware/        # Auth, validation, logging
+        │   ├── services/          # Business logic
+        │   ├── utils/             # Shared helpers
+        │   ├── uploads/           # Uploaded files
+        │   └── server.js          # App entrypoint
+        │
+        ├── config/                # Environment configs
+        ├── docs/                  # Documentation (README, API spec)
+        └── package.json
+2. Naming Conventions
+Filenames
+- Use lowercase with hyphens:
 
-15. Team Workflow
+        user-controller.js
+    
+        file-service.js
+    
+        upload-route.js
 
-16. 10. Bonus
+- HTML/CSS/JS:
+
+      index.html, main.css, app.js
+
+- Folders
++ Use lowercase, single words if possible:
+
+      routes, controllers, services, assets
++ Variables & Functions
+  +) camelCase for variables and functions:
+
+      uploadedFile, handleUpload()
++ Classes
+  +) PascalCase:
+
+
+        FileManager, AudioProcessor
+
++ Environment files
+
+
+      .env, .env.example
+3. API Naming Rules
+-  Endpoint paths use kebab-case:
+
+
+        /api/upload-file
+    
+        /api/generate-text
+- Versioning (optional but recommended):
+
+        /api/v1/upload
+
+4. File Size / Upload Organization
+- Uploads go into:
+
+       backend/uploads/
+
+- Files are stored with:
+
++ timestamp
+
++ UUID
+
++ sanitized original name
+
+Example: 
+    
+    2025-12-10_14-30-12_78fa23_document.pdf
+
+5. Additional Rules
++ No spaces in filenames.
+
++ Avoid Unicode characters.
+
++ Log files (if used) stored in /logs.
+
++ Generated files should never be committed — add to .gitignore.
+
+
+
+
+15. System Behavior & Edge Case
+
+16. Team Workflow
+
+17. 10. Bonus
