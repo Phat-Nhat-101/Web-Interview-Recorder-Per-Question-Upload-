@@ -1,0 +1,17 @@
+[
+  {
+    "username": "12",
+    "password": "1",
+    "accountType": "interviewer"
+  },
+  {
+    "username": "11",
+    "password": "1",
+    "accountType": "company"
+  },
+  {
+    "username": "Nhat",
+    "password": "1",
+    "accountType": "interviewer"
+  }
+]
