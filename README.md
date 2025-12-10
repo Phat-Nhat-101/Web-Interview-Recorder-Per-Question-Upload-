@@ -432,7 +432,7 @@ Returns:
 2.3 File Too Large
 If file exceeds the configured limit, upload is stopped mid‑transfer.
 
-Returns:
+Returns
 
     {
       "status": "error",
