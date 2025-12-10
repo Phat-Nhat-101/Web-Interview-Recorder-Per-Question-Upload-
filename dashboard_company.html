@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Company Dashboard</title>
+<style>
+body{font-family:Arial;background:#1e1e2f;color:#fff;padding:20px;}
+input{padding:5px;margin:5px;border-radius:4px;border:none;}
+button{padding:5px;border-radius:4px;border:none;background:#4caf50;color:#fff;cursor:pointer;}
+table{width:100%;border-collapse:collapse;margin-top:10px;}
+th,td{border:1px solid #fff;padding:8px;text-align:left;}
+th{background:#2196f3;}
+</style>
+</head>
+<body>
+<h2>Company Dashboard</h2>
+<div>
+<input type="text" id="companyName" placeholder="Company Name">
+<input type="text" id="position" placeholder="Position">
+<input type="date" id="deadline">
+<button id="createBtn">Create Interview</button>
+</div>
+<table>
+<tr><th>Company</th><th>Position</th><th>Deadline</th></tr>
+<tbody id="list"></tbody>
+</table>
+
+<script>
+async function load() {
+  const res = await fetch("/api/interviews");
+  const j = await res.json();
+  const list = document.getElementById("list");
+  list.innerHTML = "";
+  j.interviews.forEach(i=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML=`<td>${i.companyName}</td><td>${i.position}</td><td>${i.deadline}</td>`;
+    list.appendChild(tr);
+  });
+}
+load();
+
+document.getElementById("createBtn").onclick = async () => {
+  const data = { companyName: document.getElementById("companyName").value,
+                 position: document.getElementById("position").value,
+                 deadline: document.getElementById("deadline").value };
+  if(!data.companyName||!data.position||!data.deadline) return alert("Fill all fields");
+  const res = await fetch("/api/interviews/create", {
+    method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(data)
+  });
+  const j = await res.json();
+  if(j.ok){ load(); document.getElementById("companyName").value=""; document.getElementById("position").value=""; document.getElementById("deadline").value=""; }
+};
+</script>
+</body>
+</html>
+
+

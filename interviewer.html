@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Interviewer Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #004aad;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+    }
+    .meeting-list {
+      max-width: 800px;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .meeting {
+      background-color: #fff;
+      border-left: 5px solid #004aad;
+      padding: 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .meeting:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .meeting h3 {
+      margin: 0 0 5px 0;
+      color: #004aad;
+    }
+    .meeting p {
+      margin: 2px 0;
+      color: #333;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <header>Interviewer Dashboard</header>
+  <div class="meeting-list" id="meetingList">Loading meetings...</div>
+
+  <script>
+    function loadMeetings() {
+      fetch("/api/meetings")
+        .then(res => {
+          if (!res.ok) throw new Error("API failed");
+          return res.json();
+        })
+        .then(data => {
+          if (!data.ok || !data.meetings) {
+            document.getElementById("meetingList").innerHTML = "No meetings found.";
+            return;
+          }
+          const container = document.getElementById("meetingList");
+          container.innerHTML = "";
+          data.meetings.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "meeting";
+
+            /* ⭐ SỬA TẠI ĐÂY ⭐ */
+            div.onclick = () => window.location.href = `home.html?id=${m.id}`;
+
+            div.innerHTML = `
+              <h3>${m.position} Interview</h3>
+              <p>Company: ${m.companyName}</p>
+              <p>Position: ${m.position}</p>
+              <p>Base Salary: $${m.baseSalary}</p>
+              <p>Date: ${m.interviewDate}</p>
+            `;
+            container.appendChild(div);
+          });
+        })
+        .catch(err => {
+          console.error("Error fetching meetings:", err);
+          document.getElementById("meetingList").innerHTML =
+            "<p style='color:red;'>Failed to load meetings. Check server.</p>";
+        });
+    }
+
+    // Load khi mở trang
+    loadMeetings();
+  </script>
+</body>
+</html>
+
+
+

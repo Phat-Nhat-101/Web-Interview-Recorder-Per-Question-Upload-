@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Login — AI Interview</title>
+  <style>
+    :root { --primary: #004aad; --white: #fff; }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: "Poppins", Arial, sans-serif;
+      background: var(--primary);
+      color: var(--white);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+    }
+    .card{
+      background: rgba(255,255,255,0.04);
+      padding:28px;
+      width:360px;
+      border-radius:12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+      text-align:center;
+    }
+    h1{margin:0 0 12px; font-size:20px; font-weight:600}
+    input, select {
+      width:100%;
+      padding:10px 12px;
+      margin:8px 0;
+      border-radius:8px;
+      border: none;
+      outline: none;
+      font-size:14px;
+    }
+    input { background: rgba(255,255,255,0.1); color:var(--white) }
+    select { background: rgba(255,255,255,0.08); color:var(--white) }
+    button {
+      width:100%;
+      padding:10px;
+      margin-top:10px;
+      border-radius:8px;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn-primary { background:#0071e6; color:var(--white); }
+    .btn-secondary { background:transparent; color:var(--white); border:1px solid rgba(255,255,255,0.12); }
+    .small { font-size:13px; opacity:0.95; margin-top:12px; }
+    .error { color: #ffd2d2; margin-top:8px; font-size:13px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>AI Interview — Login</h1>
+    <input id="username" placeholder="Username" autocomplete="username" />
+    <input id="password" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="loginBtn" class="btn-primary">Login</button>
+    <button id="toRegister" class="btn-secondary">Register</button>
+    <div class="small">Chưa có tài khoản? Nhấn Register để tạo.</div>
+    <div id="msg" class="error" role="alert" aria-live="polite"></div>
+  </div>
+<script>
+  const msg = document.getElementById('msg');
+
+  // chuyển sang trang register
+  document.getElementById('toRegister').onclick = ()=>{
+    window.location.href = 'register.html';
+  };
+
+  // login
+  document.getElementById('loginBtn').onclick = async ()=>{
+    msg.textContent = '';
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+
+    if(!username || !password){
+      msg.textContent = 'Vui lòng nhập username và password.';
+      return;
+    }
+
+    try {
+      // ====== CHỈ SỬA CHỖ NÀY ======
+      const res = await fetch('/api/auth/login', {   // FIX ✔
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ username, password })
+      });
+
+      const j = await res.json();
+
+      if(j.ok){
+        // lưu lại tài khoản
+        localStorage.setItem("user", JSON.stringify({
+          username: j.username,
+          accountType: j.accountType
+        }));
+
+        // redirect theo role
+        if(j.accountType === "company")
+          window.location.href = "company.html";
+        else
+          window.location.href = "interviewer.html";
+      }
+      else msg.textContent = j.error || "Login failed.";
+
+    } catch (err){
+      msg.textContent = 'Lỗi kết nối tới server.';
+      console.error(err);
+    }
+  };
+</script>
+
+</body>
+</html>
+
+

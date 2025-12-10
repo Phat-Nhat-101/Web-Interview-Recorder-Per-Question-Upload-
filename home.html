@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Interview — Candidate View</title>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Poppins", sans-serif; background: #f4f7fb; color: #333; }
+  header { background: #004aad; color: #fff; padding: 15px 25px; font-size: 20px; font-weight: 600; }
+  main { display: flex; gap: 20px; padding: 25px; height: calc(100vh - 70px); }
+  .video-panel { flex: 2; display: flex; flex-direction: column; align-items: center; position: relative; }
+  video { width: 100%; max-height: 420px; background: #000; border-radius: 10px; display: block; }
+  canvas { position: absolute; top: 0; left: 0; width: 100%; height: 420px; pointer-events: none; z-index: 1; }
+  #meetingInfo, #questionText {
+    width: 100%; padding: 10px; background: #eef6ff;
+    border-radius: 8px; font-size: 16px; margin-bottom: 10px; white-space: pre-line;
+  }
+  .controls { margin-top: 10px; }
+  .controls button {
+    padding: 10px 15px; border: none; border-radius: 6px;
+    background: #004aad; color: white; font-weight: 600; cursor: pointer; margin: 4px;
+  }
+  .controls button:disabled { background: #ccc; cursor: not-allowed; }
+  #progress { width: 100%; margin-top: 10px; }
+  #status { margin-top: 10px; font-weight: 500; color: #004aad; }
+  .chat-panel { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  #transcript {
+    flex: 1; background: #f9fafc; padding: 12px; border-radius: 8px;
+    margin-top: 10px; overflow-y: auto; border-left: 4px solid #004aad; font-style: italic;
+  }
+</style>
+</head>
+<body>
+<header>AI Interview</header>
+
+<main>
+  <section class="video-panel">
+    <div id="meetingInfo">Loading meeting info...</div>
+    <video id="preview" autoplay playsinline muted></video>
+    <canvas id="overlay"></canvas>
+    <div id="questionText">Loading question...</div>
+
+    <div class="controls">
+      <button id="recordBtn">⏺ Start Recording</button>
+      <button id="stopBtn" disabled>⏹ Stop</button>
+      <button id="uploadBtn" disabled>📤 Upload</button>
+      <button id="finishBtn" disabled>✅ Finish</button>
+    </div>
+
+    <progress id="progress" value="0" max="100"></progress>
+    <div id="status">Idle</div>
+  </section>
+
+  <aside class="chat-panel">
+    <h3>AI Transcript</h3>
+    <div id="transcript">Your speech will appear here...</div>
+  </aside>
+</main>
+
+<script>
+/* ---------------------------------------- */
+/* DOM ELEMENTS */
+/* ---------------------------------------- */
+const els = {
+  preview: document.getElementById('preview'),
+  overlay: document.getElementById('overlay'),
+  recordBtn: document.getElementById('recordBtn'),
+  stopBtn: document.getElementById('stopBtn'),
+  uploadBtn: document.getElementById('uploadBtn'),
+  finishBtn: document.getElementById('finishBtn'),
+  progress: document.getElementById('progress'),
+  questionText: document.getElementById('questionText'),
+  transcript: document.getElementById('transcript'),
+  status: document.getElementById('status'),
+  header: document.querySelector('header'),
+  meetingInfo: document.getElementById('meetingInfo')
+};
+
+const MAX_Q = 5;
+let mediaRecorder, stream, chunks = [], questionIndex = 0;
+let recognition;
+let folder = "";  // FOLDER SESSION TRẢ VỀ TỪ SERVER
+
+/* ---------------------------------------- */
+/* MEETING ID */
+/* ---------------------------------------- */
+const params = new URLSearchParams(window.location.search);
+const meetingId = params.get("id");
+
+/* ---------------------------------------- */
+/* START SESSION → TẠO FOLDER */
+/* ---------------------------------------- */
+async function startSession() {
+  const res = await fetch("/api/session/start", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      meetingId,
+      userName: "Candidate"
+    })
+  });
+
+  const data = await res.json();
+  folder = data.folder; // DÙNG ĐỂ GỬI RECORD
+}
+startSession();
+
+/* ---------------------------------------- */
+/* LOAD MEETING INFO */
+/* ---------------------------------------- */
+fetch("/api/meetings")
+  .then(res => res.json())
+  .then(data => {
+    const meeting = data.meetings.find(m => m.id == meetingId);
+    if(meeting){
+      els.header.textContent = `${meeting.position} Interview — ${meeting.companyName}`;
+      els.meetingInfo.textContent =
+        `Position: ${meeting.position}\nCompany: ${meeting.companyName}\nBase Salary: $${meeting.baseSalary}\nDate: ${meeting.interviewDate}`;
+    }
+  });
+
+const questions = [
+  "Tell me about yourself.",
+  "Describe a challenge you’ve overcome.",
+  "What motivates you?",
+  "Where do you see yourself in 5 years?",
+  "Why should we hire you?"
+];
+els.questionText.textContent = questions[0];
+
+/* ---------------------------------------- */
+/* FACE API */
+/* ---------------------------------------- */
+async function loadModels() {
+  await faceapi.nets.tinyFaceDetector.loadFromUri('/models');
+  await faceapi.nets.faceExpressionNet.loadFromUri('/models');
+  els.status.textContent = "Face model ready ✅";
+}
+async function startCamera() {
+  stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:true });
+  els.preview.srcObject = stream;
+
+  await new Promise(resolve => {
+    els.preview.onloadedmetadata = () => {
+      els.preview.play();
+      els.overlay.width = els.preview.videoWidth;
+      els.overlay.height = els.preview.videoHeight;
+      resolve();
+    };
+  });
+
+  await loadModels();
+}
+startCamera();
+
+/* ---------------------------------------- */
+/* SPEECH RECOGNITION */
+/* ---------------------------------------- */
+function initSpeechRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  recognition = new SR();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = "en-US";
+
+  recognition.onresult = e => {
+    let t = "";
+    for (let i = e.resultIndex; i < e.results.length; i++)
+      t += e.results[i][0].transcript;
+    els.transcript.textContent = t;
+  };
+}
+initSpeechRecognition();
+
+/* ---------------------------------------- */
+/* RECORD */
+/* ---------------------------------------- */
+els.recordBtn.onclick = () => {
+  chunks = [];
+  mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm" });
+  mediaRecorder.ondataavailable = e => chunks.push(e.data);
+  mediaRecorder.start();
+
+  if (recognition) recognition.start();
+
+  els.recordBtn.disabled = true;
+  els.stopBtn.disabled = false;
+  els.status.textContent = "Recording...";
+};
+
+els.stopBtn.onclick = () => {
+  mediaRecorder.stop();
+  if (recognition) recognition.stop();
+
+  els.stopBtn.disabled = true;
+  els.uploadBtn.disabled = false;
+  els.status.textContent = "Ready to upload.";
+};
+
+/* ---------------------------------------- */
+/* REAL UPLOAD — FIXED 100% ✔ */
+/* ---------------------------------------- */
+els.uploadBtn.onclick = async () => {
+  els.status.textContent = "Uploading...";
+
+  const blob = new Blob(chunks, { type: "video/webm" });
+  const form = new FormData();
+  form.append("video", blob, "video.webm");
+  form.append("folder", folder);
+  form.append("questionIndex", questionIndex);
+  form.append("transcript", els.transcript.textContent);
+  form.append("expressions", "{}");
+
+  await fetch("/api/upload-one", { method: "POST", body: form });
+
+  els.status.textContent = "Uploaded ✔";
+
+  questionIndex++;
+  if (questionIndex < MAX_Q) {
+    els.questionText.textContent = questions[questionIndex];
+    els.recordBtn.disabled = false;
+    els.uploadBtn.disabled = true;
+  } else {
+    els.finishBtn.disabled = false;
+    els.uploadBtn.disabled = true;
+    els.recordBtn.disabled = true;
+    els.status.textContent = "All questions complete.";
+  }
+};
+
+/* ---------------------------------------- */
+/* FINISH → SAVE & REDIRECT (REQUSTED) ✔ */
+/* ---------------------------------------- */
+els.finishBtn.onclick = async () => {
+  els.status.textContent = "Finishing session...";
+
+  await fetch("/api/session/finish", { method: "POST" });
+
+  els.status.textContent = "Saved! Redirecting...";
+
+  setTimeout(() => {
+    window.location.href = "interviewer.html";
+  }, 800);
+};
+</script>
+</body>
+</html>

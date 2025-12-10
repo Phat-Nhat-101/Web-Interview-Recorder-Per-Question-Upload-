@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Company Dashboard</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f5f5f5; margin:0; padding:0; }
+  header { background: #004aad; color: #fff; padding: 20px; text-align: center; font-size: 24px; }
+  main { max-width: 900px; margin: 20px auto; padding: 0 15px; }
+
+  .meeting-list { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+  .meeting {
+    background-color: #fff;
+    border-left: 5px solid #004aad;
+    padding: 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .meeting:hover { background:#e8f0ff; }
+
+  .meeting h3 { margin:0 0 5px 0; color:#004aad; }
+  .meeting p { margin:2px 0; color:#333; font-size:14px; }
+
+  .createBtn {
+    margin-top: 20px;
+    padding: 10px 15px;
+    border:none;
+    border-radius:6px;
+    background:#004aad;
+    color:#fff;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  /* Modal */
+  .modal {
+    display:none;
+    position: fixed; top:0; left:0; width:100%; height:100%;
+    background: rgba(0,0,0,0.5); justify-content:center; align-items:center;
+  }
+  .modal-content {
+    background:#fff; padding:20px; border-radius:8px; width:300px; display:flex; flex-direction:column;
+  }
+  .modal-content input { margin:8px 0; padding:8px; border-radius:5px; border:1px solid #ccc; }
+  .modal-content button { margin-top:10px; padding:10px; border:none; border-radius:6px; background:#004aad; color:#fff; cursor:pointer; }
+</style>
+</head>
+<body>
+
+<header>Company Dashboard</header>
+
+<main>
+  <button class="createBtn" id="openModalBtn">+ Create Meeting</button>
+  <div class="meeting-list" id="meetingList">Loading meetings...</div>
+</main>
+
+<!-- Modal tạo meeting -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h3>Create Meeting</h3>
+    <input type="text" id="companyName" placeholder="Company Name">
+    <input type="text" id="position" placeholder="Position">
+    <input type="number" id="baseSalary" placeholder="Base Salary">
+    <input type="datetime-local" id="interviewDate">
+    <button id="createBtn">Create</button>
+    <button id="closeBtn" style="background:#ccc;color:#000;">Cancel</button>
+  </div>
+</div>
+
+<script>
+const modal = document.getElementById('modal');
+const openModalBtn = document.getElementById('openModalBtn');
+const closeBtn = document.getElementById('closeBtn');
+const createBtn = document.getElementById('createBtn');
+
+const meetingList = document.getElementById('meetingList');
+const companyName = document.getElementById('companyName');
+const position = document.getElementById('position');
+const baseSalary = document.getElementById('baseSalary');
+const interviewDate = document.getElementById('interviewDate');
+
+// Open/Close Modal
+openModalBtn.onclick = () => modal.style.display = 'flex';
+closeBtn.onclick = () => modal.style.display = 'none';
+
+// Load meeting list
+function loadMeetings(){
+  fetch("/api/meetings")
+    .then(res => res.json())
+    .then(data => {
+      meetingList.innerHTML = "";
+      data.meetings.forEach(m => {
+        const div = document.createElement("div");
+        div.className = "meeting";
+
+        div.innerHTML = `
+          <h3>${m.position} Interview</h3>
+          <p><strong>Company:</strong> ${m.companyName}</p>
+          <p><strong>Position:</strong> ${m.position}</p>
+          <p><strong>Base Salary:</strong> $${m.baseSalary}</p>
+          <p><strong>Date:</strong> ${m.interviewDate}</p>
+        `;
+
+        // Khi click → mở trang danh sách record
+        div.onclick = () => {
+          window.location.href = "interviewrecord.html?meetingId=" + m.id;
+        };
+
+        meetingList.appendChild(div);
+      });
+    });
+}
+
+// Create meeting
+createBtn.onclick = () => {
+  if(!companyName.value || !position.value || !baseSalary.value || !interviewDate.value){
+    alert("Please fill all fields!");
+    return;
+  }
+
+  fetch("/api/meetings", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      companyName: companyName.value,
+      position: position.value,
+      baseSalary: parseFloat(baseSalary.value),
+      interviewDate: interviewDate.value
+    })
+  })
+  .then(res=>res.json())
+  .then(data=>{
+    if(data.ok){
+      modal.style.display = 'none';
+
+      companyName.value = "";
+      position.value = "";
+      baseSalary.value = "";
+      interviewDate.value = "";
+
+      loadMeetings();
+    } else {
+      alert("Error creating meeting: " + (data.error || "Unknown"));
+    }
+  })
+  .catch(err => {
+    alert("Error: " + err.message);
+  });
+};
+
+// Close modal when clicking outside
+window.onclick = (e) => {
+  if(e.target === modal) modal.style.display = 'none';
+};
+
+// Initial load
+loadMeetings();
+</script>
+
+</body>
+</html>
+
