@@ -6,7 +6,7 @@ Candidates can join an interview session, answer randomized questions, record vi
 
 
 1.Architecture & Flow: 
-Frontend (public/*.html, JS
+Frontend (public/*.html, JS)
     
         ↕ (fetch / media capture)
 Ngrok (optional HTTPS tunnel for public access)
