@@ -1,4 +1,4 @@
-# Project-Cong-nghe-mang
+##### Project-Cong-nghe-mang#####
 Overview
 The AI Interview Platform is a lightweight full‑stack web application for delivering recorded interview sessions.
 Candidates can join an interview session, answer randomized questions, record video responses in the browser, and submit transcripts and facial‑expression metadata. Recruiters or interviewers can list sessions, open a session folder, watch per‑question videos, and read the metadata.
@@ -172,19 +172,19 @@ Notes for production
    Supported MIME Types
 The API accepts only the following MIME types:
 
-image/jpeg
-
-image/png
-
-video/mp4
-
-audio/mpeg (MP3)
-
-audio/wav
-
-application/pdf
-
-text/plain
+        image/jpeg
+    
+        image/png
+    
+        video/mp4
+    
+        audio/mpeg (MP3)
+        
+        audio/wav
+    
+        application/pdf
+    
+        text/plain
 
 Any file with an unsupported MIME type will be rejected with an HTTP 415 Unsupported Media Type response.
 
@@ -210,11 +210,99 @@ Multiple Files & Total Limit
 
 
 11. Retry Policy
+To ensure stable uploads and prevent data loss during video recording sessions, the platform implements a structured retry policy for all client‑to‑server requests—especially video uploads.
 
-12. Folder & File Naming Rules
+1. Client‑Side Retry Logic
 
-13. System Behavior & Edge Case
+The browser automatically retries failed upload attempts based on the following rules:
 
-14. Team Workflow
+    | Condition               | Action                         |
+    | ----------------------- | ------------------------------ |
+    | Network timeout         | Retry up to **3 times**        |
+    | HTTP 5xx response       | Retry up to **3 times**        |
+    | HTTP 429 (Rate limited) | Retry with exponential backoff |
+    | HTTP 4xx (except 429)   | No retry (client error)        |
 
-15. 10. Bonus
+Exponential Backoff
+Each retry waits longer than the previous attempt:
+
+    Retry 1 → wait 1 second  
+    Retry 2 → wait 2 seconds  
+    Retry 3 → wait 4 seconds
+This prevents spam‑uploading and avoids server overload.
+
+2. Server‑Side Retry Handling
+The server treats duplicate uploads safely:
+
++ Uploads for the same question (e.g., Q2.webm) overwrite the previous file.
+
++ Metadata JSON (Q2.json) also updates safely.
+
++ The server ensures folders exist before writing (ensureFolder()).
+
++ Atomic rename (fs.renameSync) ensures no partial uploads.
+
+Result: uploads are idempotent, so retries do NOT break the session.
+
+3. Token Verification Retry
+Token checking (/api/verify-token) is lightweight.
+
+    | Scenario               | Policy                             |
+    | ---------------------- | ---------------------------------- |
+    | Token missing          | No retry                           |
+    | Token invalid          | No retry                           |
+    | Network/server failure | Client may retry up to **2 times** |
+
+4. Safe Session Completion
+/api/session/finish follows a single‑retry policy:
+
++ If the request fails due to network issues, the client retries once.
+
++ The endpoint itself is idempotent — calling it multiple times is safe.
+
+5. Error Categories
+
+
+    
+        | Category                          | Retries              | Notes |
+        | --------------------------------- | -------------------- | ----- |
+        | Network loss                      | ✔ Retries enabled    |       |
+        | Server overload (5xx)             | ✔ Retries enabled    |       |
+        | Client error (400, 401, 403, 404) | ✖ No retry           |       |
+        | File too large                    | ✖ No retry           |       |
+        | Rate limit (429)                  | ✔ Retry with backoff |       |
+    
+6. Logging
+Each upload attempt logs:
+
++ timestamp
+
++ retry index
+
++ ile processed
+
++ error message (if any)
+
+This helps with debugging and analytics.
+
+7. Why This Retry Policy Matters
+This policy ensures that even under unstable connections:
+
++ No video chunks are lost
+
++ No duplicate submissions corrupt data
+
++ Users finish their interview reliably
+
++ Server stays stable under retry load
+
+       
+
+
+13. Folder & File Naming Rules
+
+14. System Behavior & Edge Case
+
+15. Team Workflow
+
+16. 10. Bonus
