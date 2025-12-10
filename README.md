@@ -396,7 +396,95 @@ Example:
 
 
 15. System Behavior & Edge Case
+    Normal System Behavior
++ The server validates all incoming requests before processing (file type, file size, required fields).
 
-16. Team Workflow
++ All file uploads are handled asynchronously to avoid blocking the event loop.
 
-17. 10. Bonus
++ The API returns structured JSON responses containing status, message, and optional data.
+
++ Errors are always returned with proper HTTP status codes (4xx for client errors, 5xx for server errors).
+
++ Temporary files are cleaned automatically after processing.
+
++ For long-running tasks, the server ensures non-blocking execution using Node.js streams.
+
+2. Edge Case Handling
+
+2.1 Missing or Invalid Fields
+If required fields are missing, the API returns:
+
+    {
+      "status": "error",
+      "message": "Missing required fields."
+    }
+If an unexpected field is provided, the API ignores it or returns a validation error depending on the endpoint.
+
+2.2 Invalid File Format
+Rejects files not matching allowed MIME types.
+
+Returns:
+
+    {
+      "status": "error",
+      "message": "Unsupported file type."
+    }
+2.3 File Too Large
+If file exceeds the configured limit, upload is stopped mid‑transfer.
+
+Returns:
+
+    {
+      "status": "error",
+      "message": "File size exceeds limit."
+    }
+2.4 Empty File / Corrupted File
+Detects zero‑byte or unreadable files.
+
+Returns:
+
+    {
+      "status": "error",
+      "message": "Uploaded file is empty or corrupted."
+    }
+2.5 Network Interruptions
+If disconnect happens mid‑upload:
+
++ The temporary file is discarded.
+
++ The request is canceled.
+
+If using ngrok, the tunnel auto‑recovers without server restart.
+
+2.6 API Rate-Limit Triggers
+If client hits retry policy or exceeds rate limits:
+
++API returns 429 Too Many Requests.
+
++ Includes Retry‑After header.
+
+2.7 Server Crashes / Unexpected Failures
+Global error handler logs the issue and returns:
+
+    {
+      "status": "error",
+      "message": "Internal server error."
+    }
+Prevents server from crashing due to unhandled exceptions.
+
+2.8 Missing Routes
+Any undefined path returns:
+
+    {
+      "status": "error",
+      "message": "Endpoint not found."
+    }
+2.9 HTTPS Enforcement
+If request is not HTTPS (important for ngrok/production):
+
+Server rejects it or auto‑redirects (depending on deployment mode).
+
+
+17. Team Workflow
+
+18. 10. Bonus
