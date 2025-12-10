@@ -486,21 +486,21 @@ Server rejects it or auto‑redirects (depending on deployment mode).
 
 18.Criteria 
 
-User authentication (login/register)	✔
-Token-based session start	✔
-Per‑question video recording	✔
-Immediate per‑question video upload	✔
-Retry policy for failed uploads	✔
-Folder naming rule (timestamp_meetingId_Candidate)	✔
-JSON metadata saved per question	✔
-Finish session = no more uploads allowed	✔
-Meeting management (create + list)	✔
-Company dashboard UI	✔
-Interviewer dashboard + record viewer	✔
-Fetching & shuffling questions	✔
-Viewing recorded videos + transcripts	✔
-Full README + architecture documentation	✔
----
+    User authentication (login/register)	✔
+    Token-based session start	✔
+    Per‑question video recording	✔
+    Immediate per‑question video upload	✔
+    Retry policy for failed uploads	✔
+    Folder naming rule (timestamp_meetingId_Candidate)	✔
+    JSON metadata saved per question	✔
+    Finish session = no more uploads allowed	✔
+    Meeting management (create + list)	✔
+    Company dashboard UI	✔
+    Interviewer dashboard + record viewer	✔
+    Fetching & shuffling questions	✔
+    Viewing recorded videos + transcripts	✔
+    Full README + architecture documentation	✔
+
 
 # ⭐ End of README 
 This document brief the  Web Interview Recorder (Per-Question Upload) project.
