@@ -12,7 +12,7 @@ Frontend (public/*.html, JS)
 Ngrok (optional HTTPS tunnel for public access)
         
         ↕ (HTTPS -> HTTP)
-Backend (Node.js + Express)
+Backend (Node.js + Express
         
         ↕ (filesystem)
 uploads/ (session folders, .webm + .json metadata)
