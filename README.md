@@ -505,9 +505,9 @@ Contributors:
 
 | Name | Student ID | Role |
 |------|------------|------|
-| **Trần Quang Huy**  | 11247176 |  UI/UX, HTML/CSS/JS pages, API integration |
-| **Đào Phát Nhật**  | 11247213 | Frontend, Retry Logic, UX |
-| ** Phạm Khôi Nguyên** | 11247211 | API, server logic, token verify, upload, folder rules |
+| Trần Quang Huy  | 11247176 |  UI/UX, HTML/CSS/JS pages, API integration |
+| Đào Phát Nhật | 11247213 | Frontend, Retry Logic, UX |
+|  Phạm Khôi Nguyên | 11247211 | API, server logic, token verify, upload, folder rules |
 
 
 # End of README 
