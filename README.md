@@ -502,13 +502,13 @@ Server rejects it or auto‑redirects (depending on deployment mode).
     Full README + architecture documentation	✔
 
 Contributors:
-| Member          | Role                             | Primary Responsibilities                                                                                                                                                               |
-| --------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
-| **Trần Quang Huy**    | **Frontend Lead**                | UI/UX, HTML/CSS/JS pages, API integration                                        |
-| **Đào Phát Nhật**   | **Backend Lead & Testing**                 | API, server logic, token verify, upload, folder rules |
-| ** Phạm Khôi Nguyên** | **Documentation & Backend & Testing Lead** | README, flow diagrams, acceptance checks, test scenarios, screenshots, meeting CRUD     |
 
-
+| Name | Student ID | Role |
+|------|------------|------|
+| **Trần Quang Huy**  | 1124 |  UI/UX, HTML/CSS/JS pages, API integration |
+| **Đào Phát Nhật**  | 1124 | Frontend, Retry Logic, UX |
+| ** Phạm Khôi Nguyên** | 1124 | API, server logic, token verify, upload, folder rules |
+| Nguyen Tran Bao Anh | 1124 |EADME, flow diagrams, acceptance checks, test scenarios, screenshots, meeting CRUD  |
 
 # ⭐ End of README 
 This document brief the  Web Interview Recorder (Per-Question Upload) project.
