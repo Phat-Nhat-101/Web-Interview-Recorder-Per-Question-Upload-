@@ -1,0 +1,32 @@
+[
+  {
+    "username": "12",
+    "password": "1",
+    "accountType": "interviewer"
+  },
+  {
+    "username": "11",
+    "password": "1",
+    "accountType": "company"
+  },
+  {
+    "username": "linh",
+    "password": "vuonglinh2006",
+    "accountType": "interviewer"
+  },
+  {
+    "username": "nathxje",
+    "password": "1",
+    "accountType": "interviewer"
+  },
+  {
+    "username": "Dao",
+    "password": "1",
+    "accountType": "company"
+  },
+  {
+    "username": "11247213",
+    "password": "1",
+    "accountType": "company"
+  }
+]
